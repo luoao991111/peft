@@ -19,6 +19,8 @@ import torch
 import torch.nn as nn
 from transformers.pytorch_utils import Conv1D
 
+import time
+
 from peft.tuners.tuners_utils import BaseTunerLayer, check_adapters_to_merge
 from peft.utils import transpose
 
@@ -152,7 +154,7 @@ class Linear(nn.Module, IA3Layer):
 
     def forward(self, x: torch.Tensor, *args: Any, **kwargs: Any) -> torch.Tensor:
         dtype = previous_dtype = x.dtype
-
+        print("lora forward begins: ", time.time())
         if self.disable_adapters:
             if self.merged:
                 self.unmerge()
@@ -178,6 +180,7 @@ class Linear(nn.Module, IA3Layer):
                 result = result.to(dtype) * ia3_scaling
 
         result = result.to(previous_dtype)
+        print("lora forward ends: ", time.time())
         return result
 
 
