@@ -415,7 +415,7 @@ class Linear(nn.Module, LoraLayer):
         return output_tensor
 
     def forward(self, x: torch.Tensor, *args: Any, **kwargs: Any) -> torch.Tensor:
-        print("lora forward begins: ", time.time())
+        torch.cuda.cudart().cudaProfilerStart()
         if self.disable_adapters:
             if self.merged:
                 self.unmerge()
@@ -441,7 +441,7 @@ class Linear(nn.Module, LoraLayer):
                     result = result + self._apply_dora(x, lora_A, lora_B, scaling, active_adapter)
 
             result = result.to(torch_result_dtype)
-        print("lora forward ends: ", time.time())
+        torch.cuda.cudart().cudaProfilerStop()
         return result
 
     def __repr__(self) -> str:
