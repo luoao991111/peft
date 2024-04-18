@@ -419,10 +419,10 @@ class Linear(nn.Module, LoraLayer):
     def forward(self, x: torch.Tensor, *args: Any, **kwargs: Any) -> torch.Tensor:
         self.iter_id = self.iter_id + 1
         should_stop = False
-        if self.iter_id > 5 and not self.profiled:
-            self.profiled = True
-            should_stop = True
-            torch.cuda.cudart().cudaProfilerStart()
+        # if self.iter_id > 5 and not self.profiled:
+        #     self.profiled = True
+        #     should_stop = True
+        #     torch.cuda.cudart().cudaProfilerStart()
         if self.disable_adapters:
             if self.merged:
                 self.unmerge()
@@ -448,8 +448,8 @@ class Linear(nn.Module, LoraLayer):
                     result = result + self._apply_dora(x, lora_A, lora_B, scaling, active_adapter)
 
             result = result.to(torch_result_dtype)
-        if should_stop:
-            torch.cuda.cudart().cudaProfilerStop()
+        # if should_stop:
+        #     torch.cuda.cudart().cudaProfilerStop() 
         return result
 
     def __repr__(self) -> str:
