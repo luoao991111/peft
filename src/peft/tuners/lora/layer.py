@@ -282,6 +282,8 @@ class Linear(nn.Module, LoraLayer):
         **kwargs,
     ) -> None:
         super().__init__()
+        self.profiled = False
+        self.iter_id = 0
         LoraLayer.__init__(self, base_layer, **kwargs)
         self.fan_in_fan_out = fan_in_fan_out
 
@@ -415,7 +417,12 @@ class Linear(nn.Module, LoraLayer):
         return output_tensor
 
     def forward(self, x: torch.Tensor, *args: Any, **kwargs: Any) -> torch.Tensor:
-        torch.cuda.cudart().cudaProfilerStart()
+        self.iter_id = self.iter_id + 1
+        should_stop = False
+        if self.iter_id > 5 and not self.profiled:
+            self.profiled = True
+            should_stop = True
+            torch.cuda.cudart().cudaProfilerStart()
         if self.disable_adapters:
             if self.merged:
                 self.unmerge()
@@ -441,7 +448,8 @@ class Linear(nn.Module, LoraLayer):
                     result = result + self._apply_dora(x, lora_A, lora_B, scaling, active_adapter)
 
             result = result.to(torch_result_dtype)
-        torch.cuda.cudart().cudaProfilerStop()
+        if should_stop:
+            torch.cuda.cudart().cudaProfilerStop()
         return result
 
     def __repr__(self) -> str:
